@@ -4,6 +4,7 @@ import { doc, getDoc } from "firebase/firestore";
 
 import { store } from "../../firebase-config";
 import { Editor, Timeline, Menu } from "./components";
+import Loader from "./components/Loader";
 
 function EditorApp({ user }) {
   const [notebooks, setNotebooks] = useState(null);
@@ -13,6 +14,7 @@ function EditorApp({ user }) {
   const activeNoteBookRef = useRef(null);
   const activeNoteRef = useRef(null);
   const [refreshApp, setRefreshApp] = useState(0);
+  const [loader, setLoader] = useState(true);
 
   const getUserNotebooks = async () => {
     try {
@@ -81,6 +83,7 @@ function EditorApp({ user }) {
             setNotes(notes);
             activeNoteRef.current = activeNote;
             setNote(activeNote.data());
+            setLoader(false);
           }
         );
       })
@@ -88,22 +91,26 @@ function EditorApp({ user }) {
   }, [refreshApp]);
   return (
     <>
+      {loader && <Loader />}
       <Container>
         <Menu
           notebooks={notebooks}
           loggedUser={loggedUserRef.current}
           setRefreshApp={setRefreshApp}
+          setLoader={setLoader}
         />
         <Timeline
           notes={notes}
           activeNotebookRef={activeNoteBookRef.current}
           setRefreshApp={setRefreshApp}
+          setLoader={setLoader}
         />
         <Editor
           note={note}
           setNote={setNote}
           setRefreshApp={setRefreshApp}
           activeNoteRef={activeNoteRef.current}
+          setLoader={setLoader}
         />
       </Container>
     </>

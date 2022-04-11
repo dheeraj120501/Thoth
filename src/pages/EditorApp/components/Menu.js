@@ -18,7 +18,7 @@ import {
   getDoc,
 } from "firebase/firestore";
 
-function Menu({ notebooks, loggedUser, setRefreshApp }) {
+function Menu({ notebooks, loggedUser, setRefreshApp, setLoader }) {
   const addNotebook = async () => {
     try {
       const notebookRef = collection(store, "NOTEBOOKS");
@@ -48,59 +48,53 @@ function Menu({ notebooks, loggedUser, setRefreshApp }) {
     }
   };
 
-  const getNotebookNotes = async (notebook) => {
+  const delNotebook = async (e, reference) => {
     try {
-      // return [
-      //   notesRef,
-      //   notes.map((note) => ({
-      //     ...note.data(),
-      //     reference: note.ref,
-      //   })),
-      //   notes.filter((note) => note.data().isActive)[0],
-      // ];
-    } catch (error) {
-      console.log(error.message);
+      const notesRef = (await getDoc(reference)).data().notesRef;
+      await Promise.all(
+        notesRef.map(async (note) => {
+          await deleteDoc(note);
+        })
+      );
+      const newNotebooksRef = loggedUser
+        .data()
+        .notebooksRef.filter((notebookRef) => notebookRef.id !== reference.id);
+      console.log(newNotebooksRef);
+      await updateDoc(loggedUser.ref, {
+        ...loggedUser.data(),
+        notebooksRef: newNotebooksRef,
+      });
+      await deleteDoc(reference);
+      setRefreshApp((refreshApp) => ++refreshApp);
+    } catch (err) {
+      console.log(err.message);
     }
   };
 
-  const delNotebook = async (e, reference) => {
-    const notesRef = (await getDoc(reference)).data().notesRef;
-    await Promise.all(
-      notesRef.map(async (note) => {
-        await deleteDoc(note);
-      })
-    );
-    const newNotebooksRef = loggedUser
-      .data()
-      .notebooksRef.filter((notebookRef) => notebookRef.id !== reference.id);
-    console.log(newNotebooksRef);
-    await updateDoc(loggedUser.ref, {
-      ...loggedUser.data(),
-      notebooksRef: newNotebooksRef,
-    });
-    await deleteDoc(reference);
-    setRefreshApp((refreshApp) => ++refreshApp);
-  };
-
   const selectNotebook = async (e, notebook) => {
-    const { reference: prevActNotebookRef, ...prevActNotebook } =
-      notebooks.filter((n) => n.isActive)[0];
+    try {
+      console.log("got clicked");
+      const { reference: prevActNotebookRef, ...prevActNotebook } =
+        notebooks.filter((n) => n.isActive)[0];
 
-    const { reference: newActNotebookRef, ...newActNotebook } =
-      notebooks.filter((n) => n.reference.id === notebook.reference.id)[0];
-    console.log(prevActNotebook);
-    console.log(prevActNotebookRef);
-    console.log(newActNotebook);
-    console.log(newActNotebookRef);
-    await updateDoc(prevActNotebookRef, {
-      ...prevActNotebook,
-      isActive: false,
-    });
-    await updateDoc(newActNotebookRef, {
-      ...newActNotebook,
-      isActive: true,
-    });
-    setRefreshApp((refreshApp) => ++refreshApp);
+      const { reference: newActNotebookRef, ...newActNotebook } =
+        notebooks.filter((n) => n.reference.id === notebook.reference.id)[0];
+      console.log(prevActNotebook);
+      console.log(prevActNotebookRef);
+      console.log(newActNotebook);
+      console.log(newActNotebookRef);
+      await updateDoc(prevActNotebookRef, {
+        ...prevActNotebook,
+        isActive: false,
+      });
+      await updateDoc(newActNotebookRef, {
+        ...newActNotebook,
+        isActive: true,
+      });
+      setRefreshApp((refreshApp) => ++refreshApp);
+    } catch (err) {
+      console.log(err.message);
+    }
   };
 
   const logout = async () => {
@@ -113,24 +107,31 @@ function Menu({ notebooks, loggedUser, setRefreshApp }) {
 
   return (
     <Main>
-      <h2>Notebook</h2>
+      <h2>Notebooks</h2>
       <Links>
         {notebooks ? (
           notebooks.map((notebook) => (
             <div
               key={notebook.reference.id}
-              onClick={(e) => selectNotebook(e, notebook)}
+              onClick={(e) => {
+                setLoader(true);
+                selectNotebook(e, notebook);
+              }}
             >
               <div className={`list ${notebook.isActive ? "active" : ""}`}>
                 {notebook.notebookName}
               </div>
 
-              <AiFillDelete
-                className="action"
-                onClick={(e) => {
-                  delNotebook(e, notebook.reference);
-                }}
-              />
+              {!notebook.isActive && (
+                <AiFillDelete
+                  className="action"
+                  onClick={(e) => {
+                    setLoader(true);
+                    e.stopPropagation();
+                    delNotebook(e, notebook.reference);
+                  }}
+                />
+              )}
             </div>
           ))
         ) : (
@@ -138,7 +139,12 @@ function Menu({ notebooks, loggedUser, setRefreshApp }) {
         )}
       </Links>
       <HLine />
-      <ActionItem onClick={addNotebook}>
+      <ActionItem
+        onClick={(e) => {
+          setLoader(true);
+          addNotebook();
+        }}
+      >
         New Notebook
         <AiFillFolderAdd size="18" />
       </ActionItem>

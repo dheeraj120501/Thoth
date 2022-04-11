@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import styled from "styled-components";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -14,6 +15,11 @@ function EditorSite() {
 
   const register = async () => {
     try {
+      const user = await createUserWithEmailAndPassword(
+        auth,
+        registerEmail,
+        registerPassword
+      );
       const notebookRef = collection(store, "NOTEBOOKS");
       const noteRef = collection(store, "NOTES");
       const note = await addDoc(noteRef, {
@@ -28,11 +34,6 @@ function EditorSite() {
         notebookName: "News Folder",
         notesRef: [note],
       });
-      const user = await createUserWithEmailAndPassword(
-        auth,
-        registerEmail,
-        registerPassword
-      );
       const newUser = doc(store, "USERS", user.user.uid);
       await setDoc(newUser, {
         username: registerEmail,
@@ -57,44 +58,63 @@ function EditorSite() {
   };
 
   return (
-    <div>
-      <div>
-        <h3> Register User </h3>
-        <input
-          placeholder="Email..."
-          onChange={(event) => {
-            setRegisterEmail(event.target.value);
-          }}
-        />
-        <input
-          placeholder="Password..."
-          onChange={(event) => {
-            setRegisterPassword(event.target.value);
-          }}
-        />
-
-        <button onClick={register}> Create User</button>
+    <Main>
+      <div className="heading">THOTH</div>
+      <div className="tagline">
+        Everybody walks past a thousand story ideas every day. The good writers
+        are the ones who see five or six of them. Most people don’t see any.
+        There is no greater agony than bearing an untold story inside you. The
+        worst enemy to creativity is self-doubt.
       </div>
+      <div className="action-center">
+        <div>
+          <h3> Register User </h3>
+          <input
+            placeholder="Email..."
+            onChange={(event) => {
+              setRegisterEmail(event.target.value);
+            }}
+          />
+          <input
+            placeholder="Password..."
+            onChange={(event) => {
+              setRegisterPassword(event.target.value);
+            }}
+          />
 
-      <div>
-        <h3> Login </h3>
-        <input
-          placeholder="Email..."
-          onChange={(event) => {
-            setLoginEmail(event.target.value);
-          }}
-        />
-        <input
-          placeholder="Password..."
-          onChange={(event) => {
-            setLoginPassword(event.target.value);
-          }}
-        />
+          <button onClick={register}> Create User</button>
+        </div>
 
-        <button onClick={login}> Login</button>
+        <div>
+          <h3> Login </h3>
+          <input
+            placeholder="Email..."
+            onChange={(event) => {
+              setLoginEmail(event.target.value);
+            }}
+          />
+          <input
+            placeholder="Password..."
+            onChange={(event) => {
+              setLoginPassword(event.target.value);
+            }}
+          />
+
+          <button onClick={login}> Login</button>
+        </div>
       </div>
-    </div>
+    </Main>
   );
 }
+
+const Main = styled.div`
+  width: 100vw;
+  height: 100vh;
+  background: #282828;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+`;
 
 export default EditorSite;

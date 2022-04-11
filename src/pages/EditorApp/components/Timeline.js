@@ -13,7 +13,7 @@ import {
 
 import { store } from "../../../firebase-config";
 
-function Timeline({ notes, setRefreshApp, activeNotebookRef }) {
+function Timeline({ notes, setRefreshApp, activeNotebookRef, setLoader }) {
   const addNote = async () => {
     try {
       const noteRef = collection(store, "NOTES");
@@ -41,35 +41,40 @@ function Timeline({ notes, setRefreshApp, activeNotebookRef }) {
       .data()
       .notesRef.filter((noteRef) => noteRef.id !== reference.id);
     console.log(newNotesRef);
+    await deleteDoc(reference);
     await updateDoc(activeNotebookRef.ref, {
       ...activeNotebookRef.data(),
       notesRef: newNotesRef,
     });
-    await deleteDoc(reference);
     setRefreshApp((refreshApp) => ++refreshApp);
   };
 
   const selectNote = async (e, note) => {
-    const { reference: prevActNoteRef, ...prevActNote } = notes.filter(
-      (n) => n.isActive
-    )[0];
+    try {
+      console.log("got clicked");
+      const { reference: prevActNoteRef, ...prevActNote } = notes.filter(
+        (n) => n.isActive
+      )[0];
 
-    const { reference: newActNoteRef, ...newActNote } = notes.filter(
-      (n) => n.reference.id === note.reference.id
-    )[0];
-    console.log(prevActNote);
-    console.log(prevActNoteRef);
-    console.log(newActNote);
-    console.log(newActNoteRef);
-    await updateDoc(prevActNoteRef, {
-      ...prevActNote,
-      isActive: false,
-    });
-    await updateDoc(newActNoteRef, {
-      ...newActNote,
-      isActive: true,
-    });
-    setRefreshApp((refreshApp) => ++refreshApp);
+      const { reference: newActNoteRef, ...newActNote } = notes.filter(
+        (n) => n.reference.id === note.reference.id
+      )[0];
+      console.log(prevActNote);
+      console.log(prevActNoteRef);
+      console.log(newActNote);
+      console.log(newActNoteRef);
+      await updateDoc(prevActNoteRef, {
+        ...prevActNote,
+        isActive: false,
+      });
+      await updateDoc(newActNoteRef, {
+        ...newActNote,
+        isActive: true,
+      });
+      setRefreshApp((refreshApp) => ++refreshApp);
+    } catch (err) {
+      console.log(err.message);
+    }
   };
 
   const search = useRef(null);
@@ -84,6 +89,7 @@ function Timeline({ notes, setRefreshApp, activeNotebookRef }) {
           Timeline
           <IoReload
             onClick={() => {
+              setLoader(true);
               setRefresh("refresh");
               setTimeout(() => {
                 setRefresh("");
@@ -115,7 +121,12 @@ function Timeline({ notes, setRefreshApp, activeNotebookRef }) {
         />
         <IoSearchSharp className={`svg ${hidden}`} />
       </SearchField>
-      <NewFile onClick={addNote}>
+      <NewFile
+        onClick={() => {
+          setLoader(true);
+          addNote();
+        }}
+      >
         New Note
         <AiFillFileAdd />
       </NewFile>
@@ -125,18 +136,25 @@ function Timeline({ notes, setRefreshApp, activeNotebookRef }) {
             <div
               className={`file ${note.isActive ? "active" : ""}`}
               key={note.reference.id}
-              onClick={(e) => selectNote(e, note)}
+              onClick={(e) => {
+                setLoader(true);
+                selectNote(e, note);
+              }}
             >
               <div className="header">
                 <div className="heading">{note.heading}</div>
-                <div className="action">
-                  <AiFillDelete
-                    size={20}
+                {!note.isActive && (
+                  <div
+                    className="action"
                     onClick={(e) => {
+                      setLoader(true);
+                      e.stopPropagation();
                       delNote(e, note.reference);
                     }}
-                  />
-                </div>
+                  >
+                    <AiFillDelete size={20} />
+                  </div>
+                )}
               </div>
               <div className="published">Published at:</div>
               <div className="desc">{note.description}</div>

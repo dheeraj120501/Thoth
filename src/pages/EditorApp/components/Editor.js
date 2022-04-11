@@ -2,7 +2,6 @@ import React, { useRef } from "react";
 import { Controlled as CodeMirror } from "react-codemirror2";
 
 import { IoSearchSharp, IoShareSocialSharp } from "react-icons/io5";
-import { MdDelete } from "react-icons/md";
 import {
   BiBold,
   BiItalic,
@@ -24,7 +23,7 @@ import styled from "styled-components";
 require("codemirror/mode/markdown/markdown");
 require("../asset/editor.css");
 
-function Editor({ note, setNote, activeNoteRef, setRefreshApp }) {
+function Editor({ note, setNote, activeNoteRef, setRefreshApp, setLoader }) {
   const save = async (e) => {
     try {
       console.log(activeNoteRef);
@@ -99,8 +98,14 @@ function Editor({ note, setNote, activeNoteRef, setRefreshApp }) {
         <div className="tools">
           <IoShareSocialSharp className="toolbar-icon" title="share" />
 
-          <MdDelete className="toolbar-icon" title="delete" />
-          <BiSave className="toolbar-icon" title="save" onClick={save} />
+          <BiSave
+            className="toolbar-icon"
+            title="save"
+            onClick={(e) => {
+              setLoader(true);
+              save(e);
+            }}
+          />
         </div>
       </Toolbar>
       <NoteHead>
@@ -146,7 +151,6 @@ function Editor({ note, setNote, activeNoteRef, setRefreshApp }) {
 
 const Main = styled.div`
   background: #1a1a1a;
-  /* padding: 0 12px; */
   width: 70vw;
   height: 100vh;
   border-top-left-radius: 10px;
