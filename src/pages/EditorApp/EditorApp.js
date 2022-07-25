@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import styled from "styled-components";
 import { doc, getDoc } from "firebase/firestore";
 
 import { store } from "../../firebase-config";
+import { Container } from "./editor-app-css";
 import { Editor, Timeline, Menu } from "./components";
 import Loader from "./components/Loader";
 
@@ -16,58 +16,58 @@ function EditorApp({ user }) {
   const [refreshApp, setRefreshApp] = useState(0);
   const [loader, setLoader] = useState(true);
 
-  const getUserNotebooks = async () => {
-    try {
-      const userRef = doc(store, `USERS/${user.uid}`);
-      const loggedUser = await getDoc(userRef);
-      // console.log(loggedUser);
-      loggedUserRef.current = loggedUser;
-      const { notebooksRef } = loggedUser.data();
-      // console.log(notebooksRef);
-      const notebooks = await Promise.all(
-        notebooksRef.map(async (n) => {
-          // console.log(n);
-          const notebook = await getDoc(n);
-          // console.log(notebook.data());
-          return notebook;
-        })
-      );
-      // console.log(notebooks);
-      return [
-        notebooksRef,
-        notebooks.map((notebook) => ({
-          ...notebook.data(),
-          reference: notebook.ref,
-        })),
-        notebooks.filter((notebook) => notebook.data().isActive)[0],
-      ];
-    } catch (error) {
-      console.log(error.message);
-    }
-  };
-  const getNotebookNotes = async (notebook) => {
-    try {
-      const notesRef = (await getDoc(notebook)).data().notesRef;
-      const notes = await Promise.all(
-        notesRef.map(async (n) => {
-          const note = await getDoc(n);
-          return note;
-        })
-      );
-      // console.log(notes);
-      return [
-        notesRef,
-        notes.map((note) => ({
-          ...note.data(),
-          reference: note.ref,
-        })),
-        notes.filter((note) => note.data().isActive)[0],
-      ];
-    } catch (error) {
-      console.log(error.message);
-    }
-  };
   useEffect(() => {
+    const getUserNotebooks = async () => {
+      try {
+        const userRef = doc(store, `USERS/${user.uid}`);
+        const loggedUser = await getDoc(userRef);
+        // console.log(loggedUser);
+        loggedUserRef.current = loggedUser;
+        const { notebooksRef } = loggedUser.data();
+        // console.log(notebooksRef);
+        const notebooks = await Promise.all(
+          notebooksRef.map(async (n) => {
+            // console.log(n);
+            const notebook = await getDoc(n);
+            // console.log(notebook.data());
+            return notebook;
+          })
+        );
+        // console.log(notebooks);
+        return [
+          notebooksRef,
+          notebooks.map((notebook) => ({
+            ...notebook.data(),
+            reference: notebook.ref,
+          })),
+          notebooks.filter((notebook) => notebook.data().isActive)[0],
+        ];
+      } catch (error) {
+        console.log(error.message);
+      }
+    };
+    const getNotebookNotes = async (notebook) => {
+      try {
+        const notesRef = (await getDoc(notebook)).data().notesRef;
+        const notes = await Promise.all(
+          notesRef.map(async (n) => {
+            const note = await getDoc(n);
+            return note;
+          })
+        );
+        // console.log(notes);
+        return [
+          notesRef,
+          notes.map((note) => ({
+            ...note.data(),
+            reference: note.ref,
+          })),
+          notes.filter((note) => note.data().isActive)[0],
+        ];
+      } catch (error) {
+        console.log(error.message);
+      }
+    };
     getUserNotebooks()
       .then(([notebooksRef, notebooks, activeNotebook]) => {
         console.log(notebooksRef);
@@ -88,7 +88,8 @@ function EditorApp({ user }) {
         );
       })
       .catch((err) => console.log(err.message));
-  }, [refreshApp]);
+  }, [refreshApp, user.uid]);
+
   return (
     <>
       {loader && <Loader />}
@@ -116,12 +117,5 @@ function EditorApp({ user }) {
     </>
   );
 }
-
-const Container = styled.div`
-  max-width: 100vw;
-  max-height: 100vh;
-  background: #282828;
-  display: flex;
-`;
 
 export default EditorApp;

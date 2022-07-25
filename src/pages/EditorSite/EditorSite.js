@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import styled from "styled-components";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import { collection, addDoc, Timestamp, doc, setDoc } from "firebase/firestore";
+
+import { Main } from "./editor-site-css";
 import { auth, store } from "../../firebase-config";
 
 function EditorSite() {
@@ -106,15 +107,5 @@ function EditorSite() {
     </Main>
   );
 }
-
-const Main = styled.div`
-  width: 100vw;
-  height: 100vh;
-  background: #282828;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-`;
 
 export default EditorSite;
