@@ -12,6 +12,7 @@ import {
 
 import { store } from "../../../../firebase-config";
 import { Main, Header, SearchField, NewFile, Files } from "./timeline-css";
+import { BiImport } from "react-icons/bi";
 
 function Timeline({ notes, setRefreshApp, activeNotebookRef, setLoader }) {
   const addNote = async () => {
@@ -129,6 +130,10 @@ function Timeline({ notes, setRefreshApp, activeNotebookRef, setLoader }) {
       >
         New Note
         <AiFillFileAdd />
+      </NewFile>
+      <NewFile onClick={() => {}}>
+        Import Note
+        <BiImport />
       </NewFile>
       <Files>
         {notes ? (

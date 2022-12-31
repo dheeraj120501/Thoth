@@ -14,6 +14,8 @@ import {
   BiCode,
   BiCodeAlt,
   BiSave,
+  BiImport,
+  BiExport,
 } from "react-icons/bi";
 import { updateDoc } from "firebase/firestore";
 
@@ -33,6 +35,10 @@ function Editor({ note, setNote, activeNoteRef, setRefreshApp, setLoader }) {
     }
   };
   const search = useRef(null);
+  const editor = useRef(null);
+  const getSelection = () => {
+    return editor.current.editor.doc.sel.ranges[0];
+  };
   // const [val, setVal] = useState(`henlo worldo
   // \`\`\`cpp
   // #include <iostream>
@@ -72,7 +78,51 @@ function Editor({ note, setNote, activeNoteRef, setRefreshApp, setLoader }) {
       <Seperator />
       <Toolbar>
         <div className="tools">
-          <BiBold className="toolbar-icon" title="bold" />
+          <BiBold
+            className="toolbar-icon"
+            title="bold"
+            onClick={() => {
+              const sel = getSelection();
+              console.log(sel);
+              console.log(editor.current);
+              const content = note?.content.split("\n");
+              // head: line, ch:anchor
+              const befS = content
+                .filter((_, i) => i <= sel.head.line)
+                .map((c, i) => {
+                  if (i !== sel.head.line) {
+                    return c;
+                  }
+                  return c.slice(0, sel.head.ch);
+                })
+                .join("\n");
+              const selS = content
+                .filter((_, i) => i >= sel.head.line && i <= sel.anchor.line)
+                .map((c, i) => {
+                  if (i === 0) {
+                    return c.slice(sel.head.ch + 1);
+                  }
+                  if (i === sel.anchor.line - sel.head.line) {
+                    return c.slice(0, sel.anchor.ch);
+                  }
+                  return c;
+                })
+                .join("\n");
+              const aftS = content
+                .filter((_, i) => i >= sel.anchor.line)
+                .map((c, i) => {
+                  if (i !== sel.anchor.line - sel.head.line) {
+                    return c;
+                  }
+                  return c.slice(sel.anchor.ch);
+                })
+                .join("\n");
+
+              console.log(befS);
+              console.log(aftS);
+              console.log(selS);
+            }}
+          />
           <BiItalic className="toolbar-icon" title="italic" />
           <BiUnderline className="toolbar-icon" title="underline" />
         </div>
@@ -105,6 +155,25 @@ function Editor({ note, setNote, activeNoteRef, setRefreshApp, setLoader }) {
               save(e);
             }}
           />
+          <BiExport
+            onClick={() => {
+              const url = window.URL.createObjectURL(new Blob([note?.content]));
+              const link = document.createElement("a");
+              link.href = url;
+              link.setAttribute("download", `${note?.heading}.md`);
+
+              // Append to html link element page
+              document.body.appendChild(link);
+
+              // Start download
+              link.click();
+
+              // Clean up and remove the link
+              link.parentNode.removeChild(link);
+            }}
+            className="toolbar-icon"
+            title="export note"
+          />
         </div>
       </Toolbar>
       <NoteHead>
@@ -131,6 +200,7 @@ function Editor({ note, setNote, activeNoteRef, setRefreshApp, setLoader }) {
       </NoteHead>
       <div className="editor">
         <CodeMirror
+          ref={editor}
           value={note?.content}
           options={{
             mode: "markdown",
