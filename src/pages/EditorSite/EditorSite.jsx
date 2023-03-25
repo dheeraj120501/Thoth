@@ -1,13 +1,9 @@
 import React, { useState } from "react";
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-} from "firebase/auth";
-import { collection, addDoc, Timestamp, doc, setDoc } from "firebase/firestore";
 
 import { Main, Header, FormContainer, Form } from "./editor-site-css";
-import { auth, store } from "../../firebase-config";
-import logo from "./asset/logo.png";
+import logo from "../../asset/logo.png";
+
+import { login, register } from "../../service/authService";
 
 function EditorSite() {
   // const [registerEmail, setRegisterEmail] = useState("");
@@ -22,45 +18,25 @@ function EditorSite() {
 
   const [formState, setFormState] = useState(FORMSTATE.LOGIN);
 
-  const register = async (email, password) => {
-    try {
-      console.log("reg");
-      const user = await createUserWithEmailAndPassword(auth, email, password);
-      const notebookRef = collection(store, "NOTEBOOKS");
-      const noteRef = collection(store, "NOTES");
-      const note = await addDoc(noteRef, {
-        content: "Default",
-        heading: "Default",
-        description: "Def",
-        created: Timestamp.now(),
-        isActive: true,
-      });
-      const notebook = await addDoc(notebookRef, {
-        isActive: true,
-        notebookName: "News Folder",
-        notesRef: [note],
-      });
-      const newUser = doc(store, "USERS", user.user.uid);
-      await setDoc(newUser, {
-        username: email.split("@")[0],
-        notebooksRef: [notebook],
-      });
-      console.log(user.user);
-    } catch (error) {
-      console.log(error.message);
-    }
-  };
-  const login = async (email, password) => {
-    try {
-      console.log("login");
-      const user = await signInWithEmailAndPassword(auth, email, password);
-      console.log(user);
-    } catch (error) {
-      console.log(error.message);
+  const auth = (e) => {
+    e.preventDefault();
+    const email = e.target[0].value;
+    const password = e.target[1].value;
+    console.log(email, password);
+    if (formState === FORMSTATE.LOGIN) {
+      login(email, password);
+    } else {
+      register(email, password);
     }
   };
 
-  console.log(logo);
+  const toggleFormState = () => {
+    if (formState === FORMSTATE.LOGIN) {
+      setFormState(FORMSTATE.REGISTER);
+    } else {
+      setFormState(FORMSTATE.LOGIN);
+    }
+  };
 
   return (
     <Main>
@@ -78,19 +54,7 @@ function EditorSite() {
       </div> */}
       <FormContainer>
         <div className="form-heading">{formState.toUpperCase()}</div>
-        <Form
-          onSubmit={(e) => {
-            e.preventDefault();
-            const email = e.target[0].value;
-            const password = e.target[1].value;
-            console.log(email, password);
-            if (formState === FORMSTATE.LOGIN) {
-              login(email, password);
-            } else {
-              register(email, password);
-            }
-          }}
-        >
+        <Form onSubmit={auth}>
           <div>
             <label className="subtitle">Email</label>
             <input type="email" name="email" />
@@ -101,13 +65,7 @@ function EditorSite() {
           </div>
           <div className="form-secondary-cta">
             {formState === FORMSTATE.REGISTER && <span></span>}
-            <span
-              onClick={() => {
-                if (formState === FORMSTATE.LOGIN)
-                  setFormState(FORMSTATE.REGISTER);
-                else setFormState(FORMSTATE.LOGIN);
-              }}
-            >
+            <span onClick={toggleFormState}>
               {formState === FORMSTATE.LOGIN
                 ? "New User?"
                 : "Already had an Account?"}

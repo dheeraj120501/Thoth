@@ -21,23 +21,12 @@ import { updateDoc } from "firebase/firestore";
 import { Main, SearchField, Seperator, Toolbar, NoteHead } from "./editor-css";
 
 import "codemirror/mode/markdown/markdown";
-import "../../asset/editor.css";
+import "../../../../asset/editor.css";
 
 function Editor({ note, setNote, activeNoteRef, setRefreshApp, setLoader }) {
-  const save = async (e) => {
-    try {
-      console.log(activeNoteRef);
-      await updateDoc(activeNoteRef.ref, note);
-      setRefreshApp((refreshApp) => ++refreshApp);
-    } catch (e) {
-      console.log(e.message);
-    }
-  };
   const search = useRef(null);
   const editor = useRef(null);
-  const getSelection = () => {
-    return editor.current.editor.doc.sel.ranges[0];
-  };
+
   // const [val, setVal] = useState(`henlo worldo
   // \`\`\`cpp
   // #include <iostream>
@@ -55,6 +44,21 @@ function Editor({ note, setNote, activeNoteRef, setRefreshApp, setLoader }) {
   // **We can bold stuffs**
 
   // *Can make them italics*`);
+
+  const save = async (e) => {
+    try {
+      console.log(activeNoteRef);
+      await updateDoc(activeNoteRef.ref, note);
+      setRefreshApp((refreshApp) => ++refreshApp);
+    } catch (e) {
+      console.log(e.message);
+    }
+  };
+
+  const getSelection = () => {
+    return editor.current.editor.doc.sel.ranges[0];
+  };
+
   return (
     <Main>
       <SearchField

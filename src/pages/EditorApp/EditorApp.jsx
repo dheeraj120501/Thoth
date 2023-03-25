@@ -3,8 +3,7 @@ import { doc, getDoc } from "firebase/firestore";
 
 import { store } from "../../firebase-config";
 import { Container } from "./editor-app-css";
-import { Editor, Timeline, Menu } from "./components";
-import Loader from "./components/Loader";
+import { Editor, Timeline, Menu, Loader } from "./components";
 
 function EditorApp({ user }) {
   const [notebooks, setNotebooks] = useState(null);
