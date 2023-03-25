@@ -20,8 +20,8 @@ import { updateDoc } from "firebase/firestore";
 
 import { Main, SearchField, Seperator, Toolbar, NoteHead } from "./editor-css";
 
-require("codemirror/mode/markdown/markdown");
-require("../../asset/editor.css");
+import "codemirror/mode/markdown/markdown";
+import "../../asset/editor.css";
 
 function Editor({ note, setNote, activeNoteRef, setRefreshApp, setLoader }) {
   const save = async (e) => {
