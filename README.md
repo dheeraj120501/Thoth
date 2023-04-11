@@ -13,4 +13,5 @@ With THOTH, writers and content creators can tap into their own inner wisdom and
 ## Test Credentials
 
 mail: test@gmail.com
+
 passwd: test@gmail.com
